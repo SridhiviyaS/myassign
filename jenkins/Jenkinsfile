@@ -1,6 +1,28 @@
 pipeline {
     agent any
+
+    environment {
+        AWS_REGION = 'us-east-1'
+        EKS_CLUSTER_NAME = 'gist-api-eks'  
+    }
+
     stages {
+        stage('Setup') {
+            steps {
+                script {
+                    echo "Configuring kubectl for EKS cluster..."
+                    sh """
+                        aws eks update-kubeconfig \
+                            --region ${AWS_REGION} \
+                            --name ${EKS_CLUSTER_NAME}
+                    """
+
+                    echo "Verifying kubectl connection..."
+                    sh "kubectl get nodes"
+                }
+            }
+        }
+
         stage('Checkout') {
             steps {
                 git branch: 'main', url: 'https://github.com/your-repo/gist-api-eks.git'
@@ -38,6 +60,15 @@ pipeline {
                 sh './scripts/deploy.sh prod'
                 sh './scripts/validate.sh prod'
             }
+        }
+    }
+
+    post {
+        failure {
+            echo 'Pipeline failed! Check logs for details.'
+        }
+        success {
+            echo 'Pipeline completed successfully!'
         }
     }
 }
