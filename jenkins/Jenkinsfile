@@ -1,0 +1,43 @@
+pipeline {
+    agent any
+    stages {
+        stage('Checkout') {
+            steps {
+                git branch: 'main', url: 'https://github.com/your-repo/gist-api-eks.git'
+            }
+        }
+        stage('Test') {
+            steps {
+                sh 'pip install -r app/requirements.txt'
+                sh 'python -m pytest'
+            }
+        }
+        stage('Build') {
+            steps {
+                sh 'chmod +x scripts/build.sh'
+                sh './scripts/build.sh'
+            }
+        }
+        stage('Deploy Dev') {
+            steps {
+                sh 'chmod +x scripts/deploy.sh'
+                sh './scripts/deploy.sh dev'
+            }
+        }
+        stage('Validate Dev') {
+            steps {
+                sh 'chmod +x scripts/validate.sh'
+                sh './scripts/validate.sh dev'
+            }
+        }
+        stage('Deploy Prod') {
+            when {
+                branch 'main'
+            }
+            steps {
+                sh './scripts/deploy.sh prod'
+                sh './scripts/validate.sh prod'
+            }
+        }
+    }
+}

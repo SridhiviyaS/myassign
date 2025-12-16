@@ -1,0 +1,29 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: gist-api
+spec:
+  replicas: 2
+  selector:
+    matchLabels:
+      app: gist-api
+  template:
+    metadata:
+      labels:
+        app: gist-api
+    spec:
+      containers:
+      - name: gist-api
+        image: 206025053449.dkr.ecr.us-east-1.amazonaws.com/gist-api:latest
+        ports:
+        - containerPort: 8080
+        envFrom:
+        - configMapRef:
+            name: gist-api-config
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "200m"
